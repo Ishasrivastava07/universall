@@ -489,17 +489,17 @@ for col, label, value, note in [
 
 st.markdown("<div style='height:0.55rem'></div>", unsafe_allow_html=True)
 
-t1, t2, t3, t4 = st.tabs(["Overview", "Segments", "Models", "Action Center"])
+t1, t2, t3, t4 = st.tabs(["Descriptive", "Diagnostic", "Predictive", "Prescriptive"])
 
 with t1:
     a, b = st.columns([1.15, 1], gap="large")
     with a:
-        st.markdown("<div class='section-title'>Portfolio Snapshot</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-title'>Descriptive Snapshot</div>", unsafe_allow_html=True)
         split = view["Loan Label"].value_counts().rename_axis("Outcome").to_frame("Customers")
         st.bar_chart(split)
         st.dataframe(split.reset_index(), use_container_width=True, hide_index=True)
     with b:
-        st.markdown("<div class='section-title'>Fast Read</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-title'>Descriptive Highlights</div>", unsafe_allow_html=True)
         top_edu = acceptance_by(view, "Education Label").sort_values("Acceptance Rate %", ascending=False).iloc[0]
         top_band = acceptance_by(view, "Income Band").sort_values("Acceptance Rate %", ascending=False).iloc[0]
         st.markdown(f"<div class='insight'><b>Best education segment:</b> {top_edu['Education Label']} with {top_edu['Acceptance Rate %']:.1f}% acceptance.<br><br><b>Best income segment:</b> {top_band['Income Band']} with {top_band['Acceptance Rate %']:.1f}% acceptance.<br><br><b>Best model:</b> {best_name} with ROC AUC {best_metric['ROC AUC']:.3f}.</div>", unsafe_allow_html=True)
@@ -527,17 +527,17 @@ with t1:
 with t2:
     a, b = st.columns(2, gap="large")
     with a:
-        st.markdown("<div class='section-title'>Age and Spending Signals</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-title'>Diagnostic Drivers</div>", unsafe_allow_html=True)
         age = acceptance_by(view, "Age Band").set_index("Age Band")[["Acceptance Rate %"]]
         st.line_chart(age)
         st.dataframe(age.reset_index(), use_container_width=True, hide_index=True)
     with b:
-        st.markdown("<div class='section-title'>Credit Card Spend Bands</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-title'>Diagnostic Spend View</div>", unsafe_allow_html=True)
         ccb = acceptance_by(view, "CCAvg Band").set_index("CCAvg Band")[["Acceptance Rate %"]]
         st.bar_chart(ccb)
         st.dataframe(ccb.reset_index(), use_container_width=True, hide_index=True)
 
-    st.markdown("<div class='section-title'>Cross-Sell Matrix</div>", unsafe_allow_html=True)
+    st.markdown("<div class='section-title'>Diagnostic Cross-Sell Matrix</div>", unsafe_allow_html=True)
     matrix = []
     for col in BINARY_COLS:
         grp = acceptance_by(view, col)
@@ -547,7 +547,7 @@ with t2:
     matrix_df = pd.DataFrame(matrix).sort_values("Lift %", ascending=False)
     st.dataframe(matrix_df, use_container_width=True, hide_index=True)
 
-    st.markdown("<div class='section-title'>Diagnostic Signals</div>", unsafe_allow_html=True)
+    st.markdown("<div class='section-title'>Diagnostic Drivers</div>", unsafe_allow_html=True)
     corr_cols = ["Age", "Experience", "Income", "Family", "CCAvg", "Education", "Mortgage", "Securities Account", "CD Account", "Online", "CreditCard", TARGET]
     corr = view[corr_cols].corr(numeric_only=True)[TARGET].drop(TARGET).sort_values(ascending=False)
     corr_df = corr.reset_index()
@@ -560,25 +560,25 @@ with t2:
 with t3:
     a, b = st.columns([1.05, 1], gap="large")
     with a:
-        st.markdown("<div class='section-title'>Model Scorecard</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-title'>Predictive Model Scorecard</div>", unsafe_allow_html=True)
         st.dataframe(metrics, use_container_width=True, hide_index=True)
         st.markdown(f"<div class='insight'><b>{best_name}</b> leads on ROC AUC and is the recommended model for the friend-facing demo version.</div>", unsafe_allow_html=True)
     with b:
-        st.markdown("<div class='section-title'>Confusion Matrix</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-title'>Predictive Confusion Matrix</div>", unsafe_allow_html=True)
         cm = pd.DataFrame(fitted[best_name]["cm"], index=["Actual 0", "Actual 1"], columns=["Pred 0", "Pred 1"])
         st.dataframe(cm, use_container_width=True)
         st.markdown("<div class='small-muted'>Rows are actual outcomes; columns are predicted outcomes.</div>", unsafe_allow_html=True)
 
     a, b = st.columns(2, gap="large")
     with a:
-        st.markdown("<div class='section-title'>Feature Importance</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-title'>Predictive Feature Importance</div>", unsafe_allow_html=True)
         imp = pd.Series(best_model.feature_importances_, index=feature_cols).sort_values(ascending=False).round(4)
         st.bar_chart(imp.head(10))
         imp_df = imp.reset_index()
         imp_df.columns = ["Feature", "Importance"]
         st.dataframe(imp_df.head(10), use_container_width=True, hide_index=True)
     with b:
-        st.markdown("<div class='section-title'>ROC Shape</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-title'>Predictive ROC View</div>", unsafe_allow_html=True)
         st.line_chart(fitted[best_name]["roc"].set_index("FPR"))
         st.markdown("<div class='small-muted'>Closer to the upper-left corner means stronger discrimination.</div>", unsafe_allow_html=True)
 
@@ -590,21 +590,21 @@ with t4:
 
     a, b = st.columns(2, gap="large")
     with a:
-        st.markdown("<div class='section-title'>Persona Mix</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-title'>Prescriptive Persona Mix</div>", unsafe_allow_html=True)
         persona_df = leads["Persona"].value_counts().to_frame("Customers")
         st.bar_chart(persona_df)
         st.dataframe(persona_df.reset_index().rename(columns={"index": "Persona"}), use_container_width=True, hide_index=True)
     with b:
-        st.markdown("<div class='section-title'>Top Lead List</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-title'>Prescriptive Lead List</div>", unsafe_allow_html=True)
         top_leads = leads[["Age", "Income", "Family", "CCAvg", "Education Label", "Predicted Probability"]].head(15).copy()
         top_leads["Predicted Probability"] = top_leads["Predicted Probability"].round(4)
         st.dataframe(top_leads, use_container_width=True, hide_index=True)
 
-    st.markdown("<div class='section-title'>Recommended Outreach</div>", unsafe_allow_html=True)
+    st.markdown("<div class='section-title'>Prescriptive Recommendations</div>", unsafe_allow_html=True)
     for _, row in leads.head(8).iterrows():
         st.markdown(f"<div class='offer'><b>{persona(row)}</b><br>Probability: {row['Predicted Probability']:.1%}<br>{offer(row)}</div>", unsafe_allow_html=True)
 
-    st.markdown("<div class='section-title'>Offer Simulator</div>", unsafe_allow_html=True)
+    st.markdown("<div class='section-title'>Prescriptive Simulator</div>", unsafe_allow_html=True)
     s1, s2, s3 = st.columns(3, gap="large")
     with s1:
         age = st.slider("Age", 21, 70, 35)
